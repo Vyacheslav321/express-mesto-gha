@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     //   message: 'Некорректная ссылка',
     // }
   },
-})
-userSchema.set('versionKey', false);
+});
+userSchema.set("versionKey", false);
 
 module.exports = mongoose.model("user", userSchema);
