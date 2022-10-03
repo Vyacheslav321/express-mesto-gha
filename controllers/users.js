@@ -31,7 +31,7 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 // сработает при POST-запросе на URL /users
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => res.send({ user }))
@@ -39,9 +39,7 @@ module.exports.createUser = (req, res) => {
       if (err.name === "ValidationError") {
         next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      return res
-        .status(500)
-        .send({ message: `${err.name}: На сервере произошла ошибка` });
+      next(err);
     });
 };
 // обновляет профиль
