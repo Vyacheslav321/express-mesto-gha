@@ -17,14 +17,16 @@ module.exports.getUsers = (_req, res) => {
 };
 // сработает при GET-запросе на URL /users/:userId
 module.exports.getUserById = (req, res) => {
-  User.findOne({ _id: req.params.userId })
+  const {userId} = req.params;
+  console.log({ userId })
+  User.findById({ userId })
     .then((user) => {
       if (!user) {
         return res.send({
           message: `${err.name}: Пользователь по указанному _id не найден`,
         });
       }
-      res.send({ data: user });
+      res.send({ user });
     })
     .catch((err) => {
       // console.log({ err });
