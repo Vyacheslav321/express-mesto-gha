@@ -21,11 +21,6 @@ module.exports.getUserById = (req, res) => {
   console.log({ userId });
   User.findById({ _id: userId })
     .then((user) => {
-      if (!user) {
-        return res.send({
-          message: `${err.name}: Пользователь по указанному _id не найден`,
-        });
-      }
       res.send({ user });
     })
     .catch((err) => {
