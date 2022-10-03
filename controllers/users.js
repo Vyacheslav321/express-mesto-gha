@@ -17,9 +17,9 @@ module.exports.getUsers = (_req, res) => {
 };
 // сработает при GET-запросе на URL /users/:userId
 module.exports.getUserById = (req, res) => {
-  const {userId} = req.params;
-  console.log({ userId })
-  User.findById({ userId })
+  const { userId } = req.params;
+  console.log({ userId });
+  User.findById({ _id: userId })
     .then((user) => {
       if (!user) {
         return res.send({
@@ -30,17 +30,14 @@ module.exports.getUserById = (req, res) => {
     })
     .catch((err) => {
       // console.log({ err });
-      if (err.name === "NotFoundError") {
-        return res
-          .status(404)
-          .send({
-            message: `${err.name}: Пользователь по указанному _id не найден`,
-          });
-      } else if (err.name === "ReferenceError") {
-        return res
-          .status(500)
-          .send({ message: `${err.name}: На сервере произошла ошибка` });
+      if (err.name === "CastError") {
+        return res.status(404).send({
+          message: `${err.name}: Пользователь по указанному _id не найден`,
+        });
       }
+      return res
+        .status(500)
+        .send({ message: `${err.name}: На сервере произошла ошибка` });
     });
 };
 // сработает при POST-запросе на URL /users
@@ -50,11 +47,9 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({
-            message: `${err.name}: Некорректные данные при создании пзльзователя`,
-          });
+        return res.status(400).send({
+          message: `${err.name}: Некорректные данные при создании пзльзователя`,
+        });
       }
       return res
         .status(500)
@@ -68,17 +63,13 @@ module.exports.updateProfile = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({
-            message: `${err.name}: Некорректные данные при создании пользователя`,
-          });
+        return res.status(400).send({
+          message: `${err.name}: Некорректные данные при создании пользователя`,
+        });
       } else if (err.name === "NotFoundError") {
-        return res
-          .status(404)
-          .send({
-            message: `${err.name}: Пользователь по указанному _id не найден`,
-          });
+        return res.status(404).send({
+          message: `${err.name}: Пользователь по указанному _id не найден`,
+        });
       }
       return res
         .status(500)
@@ -92,17 +83,13 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({
-            message: `${err.name}: Некорректные данные при создании пользователя`,
-          });
+        return res.status(400).send({
+          message: `${err.name}: Некорректные данные при создании пользователя`,
+        });
       } else if (err.name === "NotFoundError") {
-        return res
-          .status(404)
-          .send({
-            message: `${err.name}: Пользователь по указанному _id не найден`,
-          });
+        return res.status(404).send({
+          message: `${err.name}: Пользователь по указанному _id не найден`,
+        });
       }
       return res
         .status(500)
