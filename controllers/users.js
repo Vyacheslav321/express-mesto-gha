@@ -37,7 +37,7 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new NotValidCodeError('Переданы некорректные данные'));
       }
       next(err);
     });
@@ -50,7 +50,7 @@ module.exports.updateProfile = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new NotValidCodeError('Переданы некорректные данные'));
       }
       next(err);
     });
@@ -63,7 +63,7 @@ module.exports.updateAvatar = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new NotValidCodeError('Переданы некорректные данные'));
       }
       next(err);
     });
