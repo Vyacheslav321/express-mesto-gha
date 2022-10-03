@@ -24,7 +24,7 @@ module.exports.getUserById = (req, res) => {
       res.send({ user });
     })
     .catch((err) => {
-      // console.log({ err });
+      console.log(err.name)
       if (err.name === "CastError") {
         return res.status(404).send({
           message: `${err.name}: Пользователь по указанному _id не найден`,
