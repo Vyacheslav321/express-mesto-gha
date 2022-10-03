@@ -1,44 +1,33 @@
+const NotFoundError = require("../errors/NotFoundError");
+const NotValidCodeError = require("../errors/NotValidCodeError");
+
 const User = require("../models/user");
 
 // сработает при GET-запросе на URL /users
-module.exports.getUsers = (_req, res) => {
+module.exports.getUsers = (_req, res, next) => {
   User.find({})
+  .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({ message: `${err.name}: Некорректные данные` });
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      return res
-        .status(500)
-        .send({ message: `${err.name}: На сервере произошла ошибка` });
+      next(err);
     });
 };
 // сработает при GET-запросе на URL /users/:userId
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
-  // console.log({ userId });
   User.findById({ _id: userId })
+  .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      console.log(user)
-      // if (!user) {
-      //   return res.status(200).send({
-      //     message: `${err.name}: Пользователь по указанному _id не найден`,
-      //   });
-      // }
-      res.send({ user });
+        res.send({ user });
     })
     .catch((err) => {
-      console.log(err.name)
-      if (err.name === "CastError") {
-        return res.status(404).send({
-          message: `${err.name}: Пользователь по указанному _id не найден`,
-        });
+      if (err.name === 'CastError') {
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      return res
-        .status(500)
-        .send({ message: `${err.name}: На сервере произошла ошибка` });
+      next(err)
     });
 };
 // сработает при POST-запросе на URL /users
@@ -48,9 +37,7 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(400).send({
-          message: `${err.name}: Некорректные данные при создании пзльзователя`,
-        });
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
       return res
         .status(500)
@@ -58,42 +45,28 @@ module.exports.createUser = (req, res) => {
     });
 };
 // обновляет профиль
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, {new: true})
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(400).send({
-          message: `${err.name}: Некорректные данные при создании пользователя`,
-        });
-      } else if (err.name === "NotFoundError") {
-        return res.status(404).send({
-          message: `${err.name}: Пользователь по указанному _id не найден`,
-        });
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      return res
-        .status(500)
-        .send({ message: `${err.name}: На сервере произошла ошибка` });
+      next(err);
     });
 };
 // обновляет аватар
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, {new: true})
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(400).send({
-          message: `${err.name}: Некорректные данные при создании пользователя`,
-        });
-      } else if (err.name === "NotFoundError") {
-        return res.status(404).send({
-          message: `${err.name}: Пользователь по указанному _id не найден`,
-        });
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      return res
-        .status(500)
-        .send({ message: `${err.name}: На сервере произошла ошибка` });
+      next(err);
     });
 };
