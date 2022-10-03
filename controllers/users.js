@@ -18,9 +18,15 @@ module.exports.getUsers = (_req, res) => {
 // сработает при GET-запросе на URL /users/:userId
 module.exports.getUserById = (req, res) => {
   const { userId } = req.params;
-  console.log({ userId });
+  // console.log({ userId });
   User.findById({ _id: userId })
     .then((user) => {
+      console.log(user)
+      // if (!user) {
+      //   return res.status(200).send({
+      //     message: `${err.name}: Пользователь по указанному _id не найден`,
+      //   });
+      // }
       res.send({ user });
     })
     .catch((err) => {
@@ -54,7 +60,7 @@ module.exports.createUser = (req, res) => {
 // обновляет профиль
 module.exports.updateProfile = (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about })
+  User.findByIdAndUpdate(req.user._id, { name, about }, {new: true})
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -74,7 +80,7 @@ module.exports.updateProfile = (req, res) => {
 // обновляет аватар
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar })
+  User.findByIdAndUpdate(req.user._id, { avatar }, {new: true})
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
