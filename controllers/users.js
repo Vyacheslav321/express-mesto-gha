@@ -27,7 +27,7 @@ module.exports.getUserById = (req, res) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      console.log({ err });
+      // console.log({ err });
       if (err.name === "NotFoundError") {
         return res
           .status(404)
