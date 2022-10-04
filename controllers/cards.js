@@ -1,17 +1,17 @@
-const NotFoundError = require("../errors/NotFoundError");
-const NotValidCodeError = require("../errors/NotValidCodeError");
-const Card = require("../models/card");
+const NotFoundError = require('../errors/NotFoundError');
+const NotValidCodeError = require('../errors/NotValidCodeError');
+const Card = require('../models/card');
 
 // сработает при GET-запросе на URL /cards
 module.exports.getCards = (_req, res, next) => {
   Card.find({})
-    .populate("owner")
+    .populate('owner')
     .then((cards) => res.send({ cards }))
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        next(new NotValidCodeError("Переданы некорректные данные id"));
+      if (err.name === 'ValidationError') {
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      next(err);
+      next();
     });
 };
 
@@ -22,11 +22,12 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner })
     .then((card) => res.send({ card }))
     .catch((err) => {
+      // eslint-disable-next-line no-console
       console.log(err.name);
-      if (err.name === "ValidationError") {
-        next(new NotValidCodeError("Переданы некорректные данные id"));
+      if (err.name === 'ValidationError') {
+        next(new NotValidCodeError('Переданы некорректные данные id'));
       }
-      next(err);
+      next();
     });
 };
 
@@ -34,7 +35,8 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const owner = req.user._id; // _id станет доступен
   const { cardId } = req.params;
-  Card.findById(cardId).orFail(new NotFoundError("Карточка не найдена"))
+  Card.findById(cardId).orFail(new NotFoundError('Карточка не найдена'))
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (owner.toString() !== card.owner.toString()) {
         return res.send({
@@ -46,33 +48,31 @@ module.exports.deleteCard = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.name === "CastError") {
+      if (err.name === 'CastError') {
         next(new NotValidCodeError('Передан несуществующий ID карточки'));
-      } else if (err.name === "ValidationError") {
-        next(new NotFoundError("Карточка по указанному _id не найдена"));
+      } else if (err.name === 'ValidationError') {
+        next(new NotFoundError('Карточка по указанному _id не найдена'));
       }
-      next(err);
+      next();
     });
 };
-// next(new NotFoundError("Карточка по указанному _id не найдена"));
-// next(new NotValidCodeError(err.message));
 
 // поставить лайк карточке
 module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true }
+    { new: true },
   )
-    .orFail(new NotFoundError("Карточка не найдена"))
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === "CastError") {
-        next(new NotValidCodeError("Передан несуществующий ID карточки"));
-      } else if (err.name === "ValidationError") {
+      if (err.name === 'CastError') {
+        next(new NotValidCodeError('Передан несуществующий ID карточки'));
+      } else if (err.name === 'ValidationError') {
         next(new NotValidCodeError(err.message));
       }
-      next(err);
+      next();
     });
 };
 
@@ -81,18 +81,18 @@ module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true }
+    { new: true },
   )
-    .orFail(new NotFoundError("Карточка не найдена"))
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        next(new NotValidCodeError("Передан несуществующий ID карточки"));
-      } else if (err.name === "ValidationError") {
+      if (err.name === 'CastError') {
+        next(new NotValidCodeError('Передан несуществующий ID карточки'));
+      } else if (err.name === 'ValidationError') {
         next(new NotValidCodeError(err.message));
       }
-      next(err);
+      next();
     });
 };

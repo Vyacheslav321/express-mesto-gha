@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,6 +21,6 @@ const userSchema = new mongoose.Schema({
     // default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
   },
 });
-userSchema.set("versionKey", false);
+userSchema.set('versionKey', false);
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model('user', userSchema);
