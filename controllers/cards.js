@@ -33,16 +33,17 @@ module.exports.createCard = (req, res, next) => {
 
 // сработает при DELETE-запросе на URL /cards/:cardId
 module.exports.deleteCard = (req, res, next) => {
-  const owner = req.user._id; // _id станет доступен
+  // const owner = req.user._id; // _id станет доступен
   const { cardId } = req.params;
   Card.findById(cardId).orFail(new NotFoundError('Карточка не найдена'))
     // eslint-disable-next-line consistent-return
     .then((card) => {
-      if (owner.toString() !== card.owner.toString()) {
-        return res.send({
-          message: `Пользователь с ID ${owner} не является владельцем данной карточки`,
-        });
-      }
+      // Проверка на принадлежность карточки пользователю
+      // if (owner.toString() !== card.owner.toString()) {
+      //   return res.send({
+      //     message: `Пользователь с ID ${owner} не является владельцем данной карточки`,
+      //   });
+      // }
       Card.findByIdAndRemove(cardId).then(() => {
         res.send({ message: `Карточка с ID ${card.id} удалена` });
       });

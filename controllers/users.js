@@ -6,7 +6,7 @@ const User = require('../models/user');
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
-    .orFail(new NotFoundError('Пользователь не найден'))
+    // .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
