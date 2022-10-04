@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const usersRouter = require("./routes/users");
 const cardsRouter = require("./routes/cards");
+const NotFoundError = require("./errors/NotFoundError");
 const { PORT = 3000 } = process.env;
 
 const app = express();
@@ -26,7 +27,7 @@ app.use("/", usersRouter);
 app.use("/", cardsRouter);
 
 app.all("*", (_req, _res, next) => {
-  next(new NotFound("Страница не найдена"));
+  next(new NotFoundError("Страница не найдена"));
 });
 
 app.use((err, req, res, next) => {
