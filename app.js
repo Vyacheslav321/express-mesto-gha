@@ -6,6 +6,7 @@ const cors = require('cors');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const NotFoundError = require('./errors/NotFoundError');
+const errorsHandler = require('./middlewares/errorrsHandler');
 
 const { PORT = 3000 } = process.env;
 
@@ -33,13 +34,7 @@ app.all('*', (_req, _res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
 
-app.use((err, _req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
-  });
-  next();
-});
+app.use(errorsHandler);
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
