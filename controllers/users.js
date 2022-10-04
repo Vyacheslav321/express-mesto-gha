@@ -6,13 +6,9 @@ const User = require('../models/user');
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
-    // .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
-      }
-      next();
+      next(err);
     });
 };
 // сработает при GET-запросе на URL /users/:userId
@@ -26,8 +22,9 @@ module.exports.getUserById = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new NotValidCodeError('Переданы некорректные данные id'));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 // сработает при POST-запросе на URL /users
@@ -38,8 +35,9 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new NotValidCodeError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 // обновляет профиль
@@ -51,8 +49,9 @@ module.exports.updateProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new NotValidCodeError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 // обновляет аватар
@@ -64,7 +63,8 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new NotValidCodeError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next();
     });
 };

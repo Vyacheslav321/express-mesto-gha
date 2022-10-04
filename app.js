@@ -36,8 +36,7 @@ app.all('*', (_req, _res, next) => {
 app.use((err, _req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({
-    message:
-      statusCode === 500 ? `На сервере произошла ошибка ${err}` : message,
+    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
   });
   next();
 });

@@ -8,10 +8,7 @@ module.exports.getCards = (_req, res, next) => {
     .populate('owner')
     .then((cards) => res.send({ cards }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
-      }
-      next();
+      next(err);
     });
 };
 
@@ -26,8 +23,9 @@ module.exports.createCard = (req, res, next) => {
       console.log(err.name);
       if (err.name === 'ValidationError') {
         next(new NotValidCodeError('Переданы некорректные данные id'));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 
@@ -53,8 +51,9 @@ module.exports.deleteCard = (req, res, next) => {
         next(new NotValidCodeError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
         next(new NotFoundError('Карточка по указанному _id не найдена'));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 
@@ -72,8 +71,9 @@ module.exports.likeCard = (req, res, next) => {
         next(new NotValidCodeError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
         next(new NotValidCodeError(err.message));
+      } else {
+        next(err);
       }
-      next();
     });
 };
 
@@ -93,7 +93,8 @@ module.exports.dislikeCard = (req, res, next) => {
         next(new NotValidCodeError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
         next(new NotValidCodeError(err.message));
+      } else {
+        next(err);
       }
-      next();
     });
 };
