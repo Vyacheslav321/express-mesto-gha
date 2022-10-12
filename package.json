@@ -12,16 +12,24 @@
   "author": "V.Gorochnyi",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^8.24.0",
+    "eslint": "^8.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
     "nodemon": "^2.0.20"
   },
   "dependencies": {
-    "body-parser": "^1.20.0",
+    "body-parser": "^1.20.1",
     "cors": "^2.8.5",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "helmet": "^6.0.0",
-    "mongoose": "^6.6.3"
-  }
+    "mongoose": "^6.6.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vyacheslav321/express-mesto-gha.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Vyacheslav321/express-mesto-gha/issues"
+  },
+  "homepage": "https://github.com/Vyacheslav321/express-mesto-gha#readme"
 }
