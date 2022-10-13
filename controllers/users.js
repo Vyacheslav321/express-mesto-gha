@@ -1,8 +1,25 @@
+const bcrypt = require('bcrypt');
 const NotFoundError = require('../errors/NotFoundError');
 const NotValidCodeError = require('../errors/NotValidCodeError');
 
-const User = require('../models/user');
+const User = require('../models/user').default;
 
+// контроллер login
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'SECRET_KEY',
+        { expiresIn: '7d' },
+      );
+      return res.send({ token });
+    })
+    .catch(() =>
+      next()
+    )
+}
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
@@ -29,8 +46,13 @@ module.exports.getUserById = (req, res, next) => {
 };
 // сработает при POST-запросе на URL /users
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -43,7 +65,11 @@ module.exports.createUser = (req, res, next) => {
 // обновляет профиль
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { runValidators: true, new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { runValidators: true, new: true },
+  )
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
@@ -57,7 +83,11 @@ module.exports.updateProfile = (req, res, next) => {
 // обновляет аватар
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { runValidators: true, new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { runValidators: true, new: true },
+  )
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
