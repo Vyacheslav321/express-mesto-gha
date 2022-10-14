@@ -10,35 +10,36 @@ const User = require('../models/user').default;
 // контроллер регистрации
 module.exports.createUser = (req, res, next) => {
   const {
-    name, about, avatar, email, password
+    name, about, avatar, email, password,
   } = req.body;
   if (!email || !password) {
     throw new NotValidCodeError('Пароль или почта не могут быть пустыми');
   }
   User.findOne({ email })
-  .then((user) => {
-    if (user) {
-      throw new AlreadyExistData('Пользователь с таким email уже существует');
-    } else {
-    bcrypt.hash(req.body.password, 10)
-      .then((hash) => User.create({
-        name, about, avatar, email, password: hash,
-      }))
-      .then((user) => res.send({ user }))
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          next(new NotValidCodeError('Переданы некорректные данные'));
-        } else if (err.code === 11000) {
-          next(new AlreadyExistData('Пользователь с таким email уже существует'));
-        } else {
-          next(err);
-        }
-      })
-    };
+    .then((user) => {
+      if (user) {
+        throw new AlreadyExistData('Пользователь с таким email уже существует'); // сделай AlreadyExistData
+      } else {
+        bcrypt.hash(req.body.password, 10)
+          .then((hash) => User.create({
+            name, about, avatar, email, password: hash,
+          }))
+          .then((user) => res.send({ user }))
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              next(new NotValidCodeError('Переданы некорректные данные'));
+            } else if (err.code === 11000) {
+              next(new AlreadyExistData('Пользователь с таким email уже существует'));
+            } else {
+              next(err);
+            }
+          });
+      }
+    })
     .catch((err) => {
       next(err);
-    })
-});
+    });
+};
 // контроллер login
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
