@@ -1,7 +1,7 @@
 class NoAccessError extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = 99994;
+    this.statusCode = 403;
   }
 }
 

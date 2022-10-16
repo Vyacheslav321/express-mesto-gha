@@ -1,13 +1,14 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const { NODE_ENV, JWT_SECRET = 'dfYSD54hvdhDSH7db5dsbDjg' } = process.env;
+const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
 const AlreadyExistDataError = require('../errors/AlreadyExistDataError');
 const NotFoundError = require('../errors/NotFoundError');
-const BadRequestError = require('../errors/BarRequestError');
+const BadRequestError = require('../errors/BadRequestError');
 const NotValidJwt = require('../errors/NotValidJwt');
 
 const User = require('../models/user');
+const NoAccessError = require('../errors/NoAccessError');
 
 // контроллер регистрации
 module.exports.createUser = (req, res, next) => {
@@ -20,7 +21,7 @@ module.exports.createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new AlreadyExistDataError('Пользователь с таким email уже существует'); // сделай AlreadyExistData 403
+        throw new AlreadyExistDataError('Пользователь с таким email уже существует'); // 409
       } else {
         bcrypt.hash(password, 10)
           .then((hash) => User.create({
@@ -35,9 +36,9 @@ module.exports.createUser = (req, res, next) => {
           }))
           .catch((err) => {
             if (err.name === 'ValidationError') {
-              next(new BadRequestError('Переданы некорректные данные'));
-            } else if (err.code === 11000) {
-              next(new AlreadyExistDataError('Пользователь с таким email уже существует'));
+              next(new BadRequestError('Переданы некорректные данные')); // 400
+            // } else if (err.code === 11000) {
+            //   next(new AlreadyExistDataError('Пользователь с таким email уже существует'));
             } else {
               next(err);
             }
@@ -51,16 +52,24 @@ module.exports.createUser = (req, res, next) => {
 // контроллер login
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  if (!email || !password) {
+    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
+  }
+  User.findOne({ email })
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : 'SECRET_KEY',
-        { expiresIn: '7d' },
-      );
-      return res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7,
-        httpOnly: true,
+      if (!user) {
+        throw new NoAccessError('Такого пользователя не существует'); // 403
+      }
+      bcrypt.compare(password, user.password, (error, isValidPassword) => {
+        if (!isValidPassword) {
+          throw new NotValidJwt('Пароль не верен'); // 401
+        }
+        const token = jwt.sign(
+          { _id: user._id },
+          JWT_SECRET,
+          { expiresIn: '7d' },
+        );
+        return res.send({ token });
       });
     })
     .catch((err) => {
@@ -71,6 +80,7 @@ module.exports.login = (req, res, next) => {
       }
     });
 };
+
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
@@ -100,15 +110,16 @@ module.exports.getMe = (req, res, next) => {
   User.findById(req.user_id)
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      if (user) {
-        res.status(200).send({
-          _is: user._id,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-        });
-      }
+      res.send(user);
+      // if (user) {
+      //   res.status(200).send({
+      //     _is: user._id,
+      //     name: user.name,
+      //     about: user.about,
+      //     avatar: user.avatar,
+      //     email: user.email,
+      //   });
+      // }
     })
     .catch((err) => {
       next(err);

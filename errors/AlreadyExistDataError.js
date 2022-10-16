@@ -1,7 +1,7 @@
 class AlreadyExistDataError extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = 89994;
+    this.statusCode = 409;
   }
 }
 

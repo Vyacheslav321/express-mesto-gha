@@ -1,5 +1,5 @@
 const NotFoundError = require('../errors/NotFoundError');
-const BadRequestError = require('../errors/BarRequestError');
+const BadRequestError = require('../errors/BadRequestError');
 const Card = require('../models/card');
 
 // сработает при GET-запросе на URL /cards
