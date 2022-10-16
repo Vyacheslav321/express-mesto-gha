@@ -7,7 +7,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BarRequestError');
 const NotValidJwt = require('../errors/NotValidJwt');
 
-const User = require('../models/user').default;
+const User = require('../models/user');
 
 // контроллер регистрации
 module.exports.createUser = (req, res, next) => {
@@ -72,7 +72,7 @@ module.exports.login = (req, res, next) => {
     });
 };
 // сработает при GET-запросе на URL /users
-module.exports.getUsers = (req, res, next) => {
+module.exports.getUsers = (_req, res, next) => {
   User.find({})
     .then((user) => res.send({ user }))
     .catch((err) => {

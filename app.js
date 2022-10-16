@@ -22,11 +22,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.use((req, _res, next) => {
-  // _id пользователя
-  req.user = { _id: '6338205c3d093eee9f4c32f0' };
-  next();
-});
+// app.use((req, _res, next) => {
+//   // _id пользователя
+//   req.user = { _id: '6338205c3d093eee9f4c32f0' };
+//   next();
+// });
 // работа с данными пользователя
 app.use('/', usersRouter);
 // работа с карточками
