@@ -1,5 +1,5 @@
 const NotFoundError = require('../errors/NotFoundError');
-const NotValidCodeError = require('../errors/NotValidCodeError');
+const BadRequestError = require('../errors/BarRequestError');
 const Card = require('../models/card');
 
 // сработает при GET-запросе на URL /cards
@@ -22,7 +22,7 @@ module.exports.createCard = (req, res, next) => {
       // eslint-disable-next-line no-console
       console.log(err.name);
       if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new BadRequestError('Переданы некорректные данные id'));
       } else {
         next(err);
       }
@@ -48,7 +48,7 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidCodeError('Передан несуществующий ID карточки'));
+        next(new BadRequestError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
         next(new NotFoundError('Карточка по указанному _id не найдена'));
       } else {
@@ -68,9 +68,9 @@ module.exports.likeCard = (req, res, next) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidCodeError('Передан несуществующий ID карточки'));
+        next(new BadRequestError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
-        next(new NotValidCodeError(err.message));
+        next(new BadRequestError(err.message));
       } else {
         next(err);
       }
@@ -90,9 +90,9 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidCodeError('Передан несуществующий ID карточки'));
+        next(new BadRequestError('Передан несуществующий ID карточки'));
       } else if (err.name === 'ValidationError') {
-        next(new NotValidCodeError(err.message));
+        next(new BadRequestError(err.message));
       } else {
         next(err);
       }

@@ -2,9 +2,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const { NODE_ENV, JWT_SECRET = 'dfYSD54hvdhDSH7db5dsbDjg' } = process.env;
+const AlreadyExistDataError = require('../errors/AlreadyExistDataError');
 const NotFoundError = require('../errors/NotFoundError');
-const NotValidCodeError = require('../errors/NotValidCodeError');
+const BadRequestError = require('../errors/BarRequestError');
 const NotValidJwt = require('../errors/NotValidJwt');
+
 const User = require('../models/user').default;
 
 // контроллер регистрации
@@ -13,23 +15,29 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
   if (!email || !password) {
-    throw new NotValidCodeError('Пароль или почта не могут быть пустыми');
+    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
   }
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new AlreadyExistData('Пользователь с таким email уже существует'); // сделай AlreadyExistData
+        throw new AlreadyExistDataError('Пользователь с таким email уже существует'); // сделай AlreadyExistData 403
       } else {
-        bcrypt.hash(req.body.password, 10)
+        bcrypt.hash(password, 10)
           .then((hash) => User.create({
             name, about, avatar, email, password: hash,
           }))
-          .then((user) => res.send({ user }))
+          .then((userData) => res.send({
+            name: userData.name,
+            about: userData.about,
+            avatar: userData.avatar,
+            email: userData.email,
+            id: userData._id,
+          }))
           .catch((err) => {
             if (err.name === 'ValidationError') {
-              next(new NotValidCodeError('Переданы некорректные данные'));
+              next(new BadRequestError('Переданы некорректные данные'));
             } else if (err.code === 11000) {
-              next(new AlreadyExistData('Пользователь с таким email уже существует'));
+              next(new AlreadyExistDataError('Пользователь с таким email уже существует'));
             } else {
               next(err);
             }
@@ -64,7 +72,7 @@ module.exports.login = (req, res, next) => {
     });
 };
 // сработает при GET-запросе на URL /users
-module.exports.getUsers = (_req, res, next) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((user) => res.send({ user }))
     .catch((err) => {
@@ -81,7 +89,7 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new BadRequestError('Переданы некорректные данные id'));
       } else {
         next(err);
       }
@@ -92,7 +100,15 @@ module.exports.getMe = (req, res, next) => {
   User.findById(req.user_id)
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      res.send(user);
+      if (user) {
+        res.status(200).send({
+          _is: user._id,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        });
+      }
     })
     .catch((err) => {
       next(err);
@@ -110,7 +126,7 @@ module.exports.updateProfile = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные'));
+        next(new BadRequestError('Переданы некорректные данные'));
       } else {
         next(err);
       }
@@ -128,7 +144,7 @@ module.exports.updateAvatar = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные'));
+        next(new BadRequestError('Переданы некорректные данные'));
       } else {
         next(err);
       }
