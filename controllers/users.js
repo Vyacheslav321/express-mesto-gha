@@ -108,20 +108,9 @@ module.exports.getUserById = (req, res, next) => {
 // сработает при GET запросе на URL /users/me
 module.exports.getUserInfo = (req, res, next) => {
   const owner = req.user._id;
-  User.findById({ owner })
+  User.findById({ _id: owner })
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => {
-      res.send({ user });
-      // if (user) {
-      //   res.status(200).send({
-      //     _id: user._id,
-      //     name: user.name,
-      //     about: user.about,
-      //     avatar: user.avatar,
-      //     email: user.email,
-      //   });
-      // }
-    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'Bad Request') {
         next(new BadRequestError('Переданы некорректные данные'));
