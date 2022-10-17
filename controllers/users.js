@@ -100,8 +100,14 @@ module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById({ _id: userId })
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => {
-      res.send({ data: user });
+    .then((userData) => {
+      res.send({
+        name: userData.name,
+        about: userData.about,
+        avatar: userData.avatar,
+        email: userData.email,
+        id: userData._id,
+      });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -134,7 +140,11 @@ module.exports.updateProfile = (req, res, next) => {
     { runValidators: true, new: true },
   )
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'));
@@ -152,7 +162,11 @@ module.exports.updateAvatar = (req, res, next) => {
     { runValidators: true, new: true },
   )
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные'));
