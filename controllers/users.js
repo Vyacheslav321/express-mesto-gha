@@ -84,7 +84,13 @@ module.exports.login = (req, res, next) => {
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
-    .then((user) => res.send({ user }))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+      email: userData.email,
+      id: userData._id,
+    }))
     .catch((err) => {
       next(err);
     });
