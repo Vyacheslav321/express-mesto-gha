@@ -1,8 +1,8 @@
-class NotValidJwt extends Error {
+class NotValidError extends Error {
   constructor(message) {
     super(message);
     this.statusCode = 401;
   }
 }
 
-module.exports = NotValidJwt;
+module.exports = NotValidError;

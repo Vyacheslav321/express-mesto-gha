@@ -5,7 +5,7 @@ const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
 const AlreadyExistDataError = require('../errors/AlreadyExistDataError');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
-const NotValidJwt = require('../errors/NotValidJwt');
+const NotValidError = require('../errors/NotValidError');
 
 const User = require('../models/user');
 const NoAccessError = require('../errors/NoAccessError');
@@ -62,19 +62,19 @@ module.exports.login = (req, res, next) => {
       }
       bcrypt.compare(password, user.password, (error, isValidPassword) => {
         if (!isValidPassword) {
-          throw new NotValidJwt('Пароль не верен'); // 401
+          throw new NotValidError('Пароль не верен'); // 401
         }
         const token = jwt.sign(
           { _id: user._id },
           JWT_SECRET,
           { expiresIn: '7d' },
         );
-        return res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).end();
+        return res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).send({ token }).end();
       });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidJwt('Переданы неправильные почта или пароль'));
+        next(new NotValidError('Переданы неправильные почта или пароль'));
       } else {
         next(err);
       }

@@ -1,14 +1,14 @@
 const jwt = require('jsonwebtoken');
 
 const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
-const NotValidJwt = require('../errors/NotValidJwt');
+const NotValidError = require('../errors/NotValidError');
 const BadRequestError = require('../errors/BadRequestError');
 
 const auth = (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    throw new NotValidJwt('Требуется авторизация'); // 401
+    throw new NotValidError('Требуется авторизация'); // 401
   }
   let playload;
 
