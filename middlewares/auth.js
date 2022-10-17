@@ -1,26 +1,25 @@
 const jwt = require('jsonwebtoken');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
-// const JWT_TOKEN = require('../utils/constants');
+const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
 const NotValidJwt = require('../errors/NotValidJwt');
 const BadRequestError = require('../errors/BadRequestError');
 
 const auth = (req, res, next) => {
-  const { authorization } = req.headers;
+  const token = req.cookies.jwt;
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw new BadRequestError('Нужна авторизация'); // 400
-  } else {
-    const token = authorization.replace('Bearer ', '');
-    let payload;
-
-    try {
-      payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'SECRET_KEY');
-    } catch (err) {
-      throw new NotValidJwt('Авторизация не успешна'); // 401
-    }
-    req.user = payload;
-    next();
+  if (!token) {
+    throw new NotValidJwt('Требуется авторизация'); // 401
   }
+  let playload;
+
+  try {
+    playload = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return next(new BadRequestError('token is not valid')); // 400
+  }
+
+  req.user = playload;
+  return next();
 };
+
 module.exports = auth;

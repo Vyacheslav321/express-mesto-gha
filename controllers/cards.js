@@ -1,11 +1,12 @@
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const Card = require('../models/card');
+const NoAccessError = require('../errors/NoAccessError');
 
 // сработает при GET-запросе на URL /cards
 module.exports.getCards = (_req, res, next) => {
   Card.find({})
-    .populate('owner')
+    // .populate('owner')
     .then((cards) => res.send({ cards }))
     .catch((err) => {
       next(err);
@@ -14,13 +15,11 @@ module.exports.getCards = (_req, res, next) => {
 
 // сработает при POST-запросе на URL /cards
 module.exports.createCard = (req, res, next) => {
-  const owner = req.user._id; // _id станет доступен
+  const owner = req.user._id;
   const { name, link } = req.body;
   Card.create({ name, link, owner })
     .then((card) => res.send({ card }))
     .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.log(err.name);
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные id'));
       } else {
@@ -31,17 +30,14 @@ module.exports.createCard = (req, res, next) => {
 
 // сработает при DELETE-запросе на URL /cards/:cardId
 module.exports.deleteCard = (req, res, next) => {
-  // const owner = req.user._id; // _id станет доступен
+  const owner = req.user._id;
   const { cardId } = req.params;
   Card.findById(cardId).orFail(new NotFoundError('Карточка не найдена'))
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       // Проверка на принадлежность карточки пользователю
-      // if (owner.toString() !== card.owner.toString()) {
-      //   return res.send({
-      //     message: `Пользователь с ID ${owner} не является владельцем данной карточки`,
-      //   });
-      // }
+      if (owner.toString() !== card.owner.toString()) {
+        next(new NoAccessError(`Пользователь с ID ${owner} не является владельцем данной карточки`));
+      }
       Card.findByIdAndRemove(cardId).then(() => {
         res.send({ message: `Карточка с ID ${card.id} удалена` });
       });

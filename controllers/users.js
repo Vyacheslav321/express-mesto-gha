@@ -69,7 +69,7 @@ module.exports.login = (req, res, next) => {
           JWT_SECRET,
           { expiresIn: '7d' },
         );
-        return res.send({ token });
+        return res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).end();
       });
     })
     .catch((err) => {
@@ -95,7 +95,7 @@ module.exports.getUserById = (req, res, next) => {
   User.findById({ _id: userId })
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      res.send({ user });
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -106,14 +106,15 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 // сработает при GET запросе на URL /users/me
-module.exports.getMe = (req, res, next) => {
-  User.findById(req.user_id)
+module.exports.getUserInfo = (req, res, next) => {
+  const owner = req.user._id;
+  User.findById({ owner })
     .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      res.send(user);
+      res.send({ user });
       // if (user) {
       //   res.status(200).send({
-      //     _is: user._id,
+      //     _id: user._id,
       //     name: user.name,
       //     about: user.about,
       //     avatar: user.avatar,
@@ -122,7 +123,11 @@ module.exports.getMe = (req, res, next) => {
       // }
     })
     .catch((err) => {
-      next(err);
+      if (err.name === 'Bad Request') {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
     });
 };
 // обновляет профиль

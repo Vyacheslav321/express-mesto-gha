@@ -1,27 +1,36 @@
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
 const {
   getUsers,
   getUserById,
-  getMe,
+  getUserInfo,
   updateProfile,
   updateAvatar,
-  login,
-  createUser,
 } = require('../controllers/users');
+const { linkReg } = require('../utils/constants');
 
 // сработает при GET-запросе на URL /users
 router.get('/users', getUsers);
 // сработает при GET-запросе на URL /users/:userId
-router.get('/users/:userId', getUserById);
+router.get('/users/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().hex().length(24).required(),
+  }),
+}), getUserById);
 // сработает при POST-запросе на URL /users
-router.get('/users/me', getMe);
+router.get('/users/me', getUserInfo);
 // обновляет профиль
-router.patch('/users/me', updateProfile);
+router.patch('/users/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+  }),
+}), updateProfile);
 // обновляет аватар
-router.patch('/users/me/avatar', updateAvatar);
-// Логнин
-router.post('/signin', login);
-// Регистрация
-router.post('/signup', createUser);
+router.patch('/users/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().pattern(linkReg), //
+  }),
+}), updateAvatar);
 
 module.exports = router;
