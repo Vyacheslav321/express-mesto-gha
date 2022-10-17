@@ -122,7 +122,13 @@ module.exports.getUserInfo = (req, res, next) => {
   const owner = req.user._id;
   User.findById({ _id: owner })
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+      email: userData.email,
+      id: userData._id,
+    }))
     .catch((err) => {
       if (err.name === 'Bad Request') {
         next(new BadRequestError('Переданы некорректные данные'));
