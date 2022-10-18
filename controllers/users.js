@@ -8,7 +8,6 @@ const BadRequestError = require('../errors/BadRequestError');
 const NotValidError = require('../errors/NotValidError');
 
 const User = require('../models/user');
-const NoAccessError = require('../errors/NoAccessError');
 
 // контроллер регистрации
 module.exports.createUser = (req, res, next) => {
@@ -58,11 +57,11 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (!user) {
-        throw new NoAccessError('Такого пользователя не существует'); // 403
+        throw new NotValidError('Такого пользователя не существует'); // 401
       }
       bcrypt.compare(password, user.password, (error, isValidPassword) => {
         if (!isValidPassword) {
-          throw new NotValidError('Пароль не верен'); // 401
+          return next(new NotValidError('Пароль не верен')); // 401
         }
         const token = jwt.sign(
           { _id: user._id },
