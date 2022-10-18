@@ -3,22 +3,25 @@ const { celebrate, Joi } = require('celebrate');
 const {
   getUsers,
   getUserById,
-  getUserInfo,
+  getCurrentUser,
   updateProfile,
   updateAvatar,
 } = require('../controllers/users');
 const { linkReg } = require('../utils/constants');
 
-// сработает при GET-запросе на URL /users
+// информация о пользователе
+router.get('/users/me', getCurrentUser);
+
+// список пользователей
 router.get('/users', getUsers);
-// сработает при GET-запросе на URL /users/:userId
+
+// поиск пользователя по userId
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
     userId: Joi.string().hex().length(24).required(),
   }),
 }), getUserById);
-// сработает при GET-запросе на URL /users/me
-router.get('/users/me', getUserInfo);
+
 // обновляет профиль
 router.patch('/users/me', celebrate({
   body: Joi.object().keys({
@@ -26,6 +29,7 @@ router.patch('/users/me', celebrate({
     about: Joi.string().min(2).max(30),
   }),
 }), updateProfile);
+
 // обновляет аватар
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({

@@ -57,7 +57,7 @@ app.all('*', (_req, _res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
 
-app.use(errors()); // обработчик ошибок celebrate
+app.use(errors());
 app.use(errorsHandler);
 
 app.listen(PORT, () => {

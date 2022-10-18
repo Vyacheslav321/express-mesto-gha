@@ -81,7 +81,7 @@ module.exports.login = (req, res, next) => {
 };
 
 // сработает при GET-запросе на URL /users
-module.exports.getUsers = (_req, res, next) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((userData) => {
       res.send({
@@ -115,24 +115,19 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 // сработает при GET запросе на URL /users/me
-module.exports.getUserInfo = (req, res, next) => {
-  const owner = req.user._id;
-  User.findById({ _id: owner })
-    .orFail(new NotFoundError('Пользователь не найден'))
-    .then((userData) => res.send({
-      name: userData.name,
-      about: userData.about,
-      avatar: userData.avatar,
-      email: userData.email,
-      id: userData._id,
-    }))
-    .catch((err) => {
-      if (err.name === 'Bad Request') {
-        next(new BadRequestError('Переданы некорректные данные'));
-      } else {
-        next(err);
-      }
-    });
+module.exports.getCurrentUser = (req, res, next) => {
+  if (req.user._id.match(/^[0-9a-fA-F]{24}$/)) {
+    User.findById({ _id: req.user._id })
+      .orFail(new NotFoundError('Пользователь не найден'))
+      .then((userData) => res.send(userData))
+      .catch((err) => {
+        if (err.name === 'Bad Request') {
+          next(new BadRequestError('Переданы некорректные данные'));
+        } else {
+          next(err);
+        }
+      });
+  }
 };
 // обновляет профиль
 module.exports.updateProfile = (req, res, next) => {

@@ -4,8 +4,8 @@ const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
 const NotValidError = require('../errors/NotValidError');
 const BadRequestError = require('../errors/BadRequestError');
 
-const auth = (req, res, next) => {
-  const token = req.cookies.jwt;
+const auth = (request, res, next) => {
+  const token = request.cookies.jwt;
 
   if (!token) {
     throw new NotValidError('Требуется авторизация'); // 401
@@ -18,7 +18,7 @@ const auth = (req, res, next) => {
     return next(new BadRequestError('token is not valid')); // 400
   }
 
-  req.user = playload;
+  request.user = playload;
   return next();
 };
 
