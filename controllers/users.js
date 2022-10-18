@@ -1,12 +1,84 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
+const AlreadyExistDataError = require('../errors/AlreadyExistDataError');
 const NotFoundError = require('../errors/NotFoundError');
-const NotValidCodeError = require('../errors/NotValidCodeError');
+const BadRequestError = require('../errors/BadRequestError');
+const NotValidError = require('../errors/NotValidError');
 
 const User = require('../models/user');
 
+// контроллер регистрации
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
+  }
+  User.findOne({ email });
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+      email: userData.email,
+      id: userData._id,
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные')); // 400
+      } else if (err.code === 11000) {
+        next(new AlreadyExistDataError('Пользователь с таким email уже существует')); // 409
+      } else {
+        next(err);
+      }
+    });
+};
+// контроллер login
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
+  }
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new NotValidError('Такого пользователя не существует'); // 401
+      }
+      bcrypt.compare(password, user.password, (error, isValidPassword) => {
+        if (!isValidPassword) {
+          return next(new NotValidError('Пароль не верен')); // 401
+        }
+        const token = jwt.sign(
+          { _id: user._id },
+          JWT_SECRET,
+          { expiresIn: '7d' },
+        );
+        return res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).send({ token }).end();
+      });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new NotValidError('Переданы неправильные почта или пароль'));
+      } else {
+        next(err);
+      }
+    });
+};
+
 // сработает при GET-запросе на URL /users
-module.exports.getUsers = (_req, res, next) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((user) => res.send({ user }))
+    .then((userData) => {
+      res.send({
+        data: userData,
+      });
+    })
     .catch((err) => {
       next(err);
     });
@@ -16,39 +88,55 @@ module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById({ _id: userId })
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => {
-      res.send({ user });
+    .then((userData) => {
+      res.send({
+        name: userData.name,
+        about: userData.about,
+        avatar: userData.avatar,
+        email: userData.email,
+        id: userData._id,
+      });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotValidCodeError('Переданы некорректные данные id'));
+        next(new BadRequestError('Переданы некорректные данные id'));
       } else {
         next(err);
       }
     });
 };
-// сработает при POST-запросе на URL /users
-module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные'));
-      } else {
-        next(err);
-      }
-    });
+// сработает при GET запросе на URL /users/me
+module.exports.getCurrentUser = (req, res, next) => {
+  if (req.user._id.match(/^[0-9a-fA-F]{24}$/)) {
+    User.findById({ _id: req.user._id })
+      .orFail(new NotFoundError('Пользователь не найден'))
+      .then((userData) => res.send(userData))
+      .catch((err) => {
+        if (err.name === 'Bad Request') {
+          next(new BadRequestError('Переданы некорректные данные'));
+        } else {
+          next(err);
+        }
+      });
+  }
 };
 // обновляет профиль
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { runValidators: true, new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { runValidators: true, new: true },
+  )
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные'));
+        next(new BadRequestError('Переданы некорректные данные'));
       } else {
         next(err);
       }
@@ -57,12 +145,20 @@ module.exports.updateProfile = (req, res, next) => {
 // обновляет аватар
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { runValidators: true, new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { runValidators: true, new: true },
+  )
     .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .then((userData) => res.send({
+      name: userData.name,
+      about: userData.about,
+      avatar: userData.avatar,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new NotValidCodeError('Переданы некорректные данные'));
+        next(new BadRequestError('Переданы некорректные данные'));
       } else {
         next(err);
       }

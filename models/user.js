@@ -1,26 +1,43 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
     minlength: 2,
     maxlength: 30,
-    // default: "Жак-Ив Кусто",
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    required: true,
     minlength: 2,
     maxlength: 30,
-    // default: "Исследователь",
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (link) => validator.isURL(link),
+      message: 'Передана ссылка некорректного формата',
+    },
+  },
+  email: {
+    type: String,
     required: true,
-    // default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
+    unique: true,
+    validate: (value) => validator.isEmail(value),
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false, // убирает пароль из выдачи
+  },
+  userId: {
+    type: String,
   },
 });
+
 userSchema.set('versionKey', false);
 
 module.exports = mongoose.model('user', userSchema);
