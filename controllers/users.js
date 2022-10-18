@@ -17,35 +17,20 @@ module.exports.createUser = (req, res, next) => {
   if (!email || !password) {
     throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
   }
-  User.findOne({ email })
-    .then((user) => {
-      if (user) {
-        throw new AlreadyExistDataError('Пользователь с таким email уже существует'); // 409
-      } else {
-        bcrypt.hash(password, 10)
-          .then((hash) => User.create({
-            name, about, avatar, email, password: hash,
-          }))
-          .then((userData) => res.send({
-            name: userData.name,
-            about: userData.about,
-            avatar: userData.avatar,
-            email: userData.email,
-            id: userData._id,
-          }))
-          .catch((err) => {
-            if (err.name === 'ValidationError') {
-              next(new BadRequestError('Переданы некорректные данные')); // 400
-            // } else if (err.code === 11000) {
-            //   next(new AlreadyExistDataError('Пользователь с таким email уже существует'));
-            } else {
-              next(err);
-            }
-          });
-      }
-    })
+  User.findOne({ email });
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((userData) => res.send({ userData }))
     .catch((err) => {
-      next(err);
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные')); // 400
+      } else if (err.code === 11000) {
+        next(new AlreadyExistDataError('Пользователь с таким email уже существует')); // 409
+      } else {
+        next(err);
+      }
     });
 };
 // контроллер login
