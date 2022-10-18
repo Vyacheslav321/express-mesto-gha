@@ -17,7 +17,7 @@ router.get('/users/:userId', celebrate({
     userId: Joi.string().hex().length(24).required(),
   }),
 }), getUserById);
-// сработает при POST-запросе на URL /users
+// сработает при GET-запросе на URL /users/me
 router.get('/users/me', getUserInfo);
 // обновляет профиль
 router.patch('/users/me', celebrate({

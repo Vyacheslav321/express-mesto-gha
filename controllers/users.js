@@ -54,7 +54,7 @@ module.exports.login = (req, res, next) => {
   if (!email || !password) {
     throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
   }
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         throw new NotValidError('Такого пользователя не существует'); // 401
@@ -83,13 +83,11 @@ module.exports.login = (req, res, next) => {
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (_req, res, next) => {
   User.find({})
-    .then((userData) => res.send({
-      name: userData.name,
-      about: userData.about,
-      avatar: userData.avatar,
-      email: userData.email,
-      id: userData._id,
-    }))
+    .then((userData) => {
+      res.send({
+        data: userData,
+      });
+    })
     .catch((err) => {
       next(err);
     });
