@@ -14,9 +14,6 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
-  }
   User.findOne({ email });
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -47,9 +44,6 @@ module.exports.login = (req, res, next) => {
   }
   User.findOne({ email }).select('+password')
     .then((user) => {
-      if (!user) {
-        throw new NotValidError('Такого пользователя не существует'); // 401
-      }
       bcrypt.compare(password, user.password, (error, isValidPassword) => {
         if (!isValidPassword) {
           return next(new NotValidError('Пароль не верен')); // 401
@@ -107,18 +101,12 @@ module.exports.getUserById = (req, res, next) => {
 };
 // сработает при GET запросе на URL /users/me
 module.exports.getCurrentUser = (req, res, next) => {
-  if (req.user._id.match(/^[0-9a-fA-F]{24}$/)) {
-    User.findById({ _id: req.user._id })
-      .orFail(new NotFoundError('Пользователь не найден'))
-      .then((userData) => res.send(userData))
-      .catch((err) => {
-        if (err.name === 'Bad Request') {
-          next(new BadRequestError('Переданы некорректные данные'));
-        } else {
-          next(err);
-        }
-      });
-  }
+  User.findById({ _id: req.user._id })
+    .orFail(new NotFoundError('Пользователь не найден'))
+    .then((userData) => res.send(userData))
+    .catch((err) => {
+      next(err);
+    });
 };
 // обновляет профиль
 module.exports.updateProfile = (req, res, next) => {

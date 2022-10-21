@@ -32,24 +32,24 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const owner = req.user._id;
   const { cardId } = req.params;
-  Card.findById(cardId).orFail(new NotFoundError('Карточка не найдена'))
+  Card.findById(cardId)
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => {
       // Проверка на принадлежность карточки пользователю
       if (owner.toString() !== card.owner.toString()) {
-        next(new NoAccessError(`Пользователь с ID ${owner} не является владельцем данной карточки`));
+        return next(new NoAccessError(`Пользователь с ID ${owner} не является владельцем данной карточки`));
       }
-      Card.findByIdAndRemove(cardId).then(() => {
-        res.send({ message: `Карточка с ID ${card.id} удалена` });
-      });
+      return Card.findByIdAndRemove(cardId)
+        .then(() => {
+          res.send({ message: `Карточка с ID ${card.id} удалена` });
+        })
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан несуществующий ID карточки'));
-      } else if (err.name === 'ValidationError') {
-        next(new NotFoundError('Карточка по указанному _id не найдена'));
-      } else {
-        next(err);
       }
+      next(err);
     });
 };
 
@@ -65,11 +65,8 @@ module.exports.likeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан несуществующий ID карточки'));
-      } else if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else {
-        next(err);
       }
+      next(err);
     });
 };
 
@@ -87,10 +84,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан несуществующий ID карточки'));
-      } else if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else {
-        next(err);
       }
+      next(err);
     });
 };
