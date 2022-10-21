@@ -39,11 +39,14 @@ module.exports.createUser = (req, res, next) => {
 // контроллер login
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
-  }
+  // if (!email || !password) {
+  //   throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
+  // }
   User.findOne({ email }).select('+password')
     .then((user) => {
+      if (!user) {
+        throw new NotValidError('Такого пользователя не существует'); // 401
+      }
       bcrypt.compare(password, user.password, (error, isValidPassword) => {
         if (!isValidPassword) {
           return next(new NotValidError('Пароль не верен')); // 401
