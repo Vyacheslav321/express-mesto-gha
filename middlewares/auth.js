@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
 const NotValidError = require('../errors/NotValidError');
-const BadRequestError = require('../errors/BadRequestError');
 
 const auth = (request, res, next) => {
   const token = request.cookies.jwt;
@@ -15,7 +14,7 @@ const auth = (request, res, next) => {
   try {
     playload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    return next(new BadRequestError('token is not valid')); // 400
+    return next(new NotValidError('token is not valid')); // 401
   }
 
   request.user = playload;

@@ -33,9 +33,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false, // убирает пароль из выдачи
   },
-  userId: {
-    type: String,
-  },
 });
 
 userSchema.set('versionKey', false);

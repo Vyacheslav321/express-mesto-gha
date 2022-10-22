@@ -14,9 +14,6 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
-  }
   User.findOne({ email });
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -42,9 +39,9 @@ module.exports.createUser = (req, res, next) => {
 // контроллер login
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
-  }
+  // if (!email || !password) {
+  //   throw new BadRequestError('Пароль или почта не могут быть пустыми'); // 400
+  // }
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
@@ -69,6 +66,11 @@ module.exports.login = (req, res, next) => {
         next(err);
       }
     });
+};
+
+// контроллер SignOut
+module.exports.signout = (_req, res) => {
+  res.clearCookie('jwt').send({ message: 'Выход' });
 };
 
 // сработает при GET-запросе на URL /users
@@ -107,18 +109,12 @@ module.exports.getUserById = (req, res, next) => {
 };
 // сработает при GET запросе на URL /users/me
 module.exports.getCurrentUser = (req, res, next) => {
-  if (req.user._id.match(/^[0-9a-fA-F]{24}$/)) {
-    User.findById({ _id: req.user._id })
-      .orFail(new NotFoundError('Пользователь не найден'))
-      .then((userData) => res.send(userData))
-      .catch((err) => {
-        if (err.name === 'Bad Request') {
-          next(new BadRequestError('Переданы некорректные данные'));
-        } else {
-          next(err);
-        }
-      });
-  }
+  User.findById({ _id: req.user._id })
+    .orFail(new NotFoundError('Пользователь не найден'))
+    .then((userData) => res.send(userData))
+    .catch((err) => {
+      next(err);
+    });
 };
 // обновляет профиль
 module.exports.updateProfile = (req, res, next) => {

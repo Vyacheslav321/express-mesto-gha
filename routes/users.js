@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
 const {
   getUsers,
   getUserById,
@@ -7,34 +6,25 @@ const {
   updateProfile,
   updateAvatar,
 } = require('../controllers/users');
-const { linkReg } = require('../utils/constants');
+const {
+  userIdValidation,
+  profileValidation,
+  avatarValidation,
+} = require('../middlewares/validation');
 
 // информация о пользователе
-router.get('/users/me', getCurrentUser);
+router.get('/me', getCurrentUser);
 
 // список пользователей
-router.get('/users', getUsers);
+router.get('/', getUsers);
 
 // поиск пользователя по userId
-router.get('/users/:userId', celebrate({
-  params: Joi.object().keys({
-    userId: Joi.string().hex().length(24).required(),
-  }),
-}), getUserById);
+router.get('/:userId', userIdValidation, getUserById);
 
 // обновляет профиль
-router.patch('/users/me', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-  }),
-}), updateProfile);
+router.patch('/me', profileValidation, updateProfile);
 
 // обновляет аватар
-router.patch('/users/me/avatar', celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().pattern(linkReg), //
-  }),
-}), updateAvatar);
+router.patch('/me/avatar', avatarValidation, updateAvatar);
 
 module.exports = router;
