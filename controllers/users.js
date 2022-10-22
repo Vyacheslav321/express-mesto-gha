@@ -68,6 +68,11 @@ module.exports.login = (req, res, next) => {
     });
 };
 
+// контроллер SignOut
+module.exports.signout = (_req, res) => {
+  res.clearCookie('jwt').send({ message: 'Выход' });
+};
+
 // сработает при GET-запросе на URL /users
 module.exports.getUsers = (req, res, next) => {
   User.find({})
