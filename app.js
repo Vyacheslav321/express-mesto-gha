@@ -20,7 +20,7 @@ app.use(cookieParser());// Парсер кук как мидлвэр
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://51.250.72.40:27017/mestodb'); // подключение сервера mongo
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb'); // подключение сервера mongo
 
 app.use(router); // Логика маршрутизации
 
