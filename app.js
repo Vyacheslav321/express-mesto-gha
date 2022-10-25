@@ -23,8 +23,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.connect('mongodb://localhost:27017/mestodb'); // подключение сервера mongo
 
 app.use(router); // Логика маршрутизации
-app.use(errors());
-app.use(errorsHandler);
+
+app.use(errors()); // обработчик ошибок celebrate
+app.use(errorsHandler);// централизованный обработчик ошибок
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
