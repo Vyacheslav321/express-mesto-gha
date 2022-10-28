@@ -1,23 +1,29 @@
 const jwt = require('jsonwebtoken');
 
-const { JWT_SECRET = 'pkuvqwongbqpoiqoufnvsvybqp' } = process.env;
+const { NODE_ENV, JWT_SECRET } = process.env;
 const NotValidError = require('../errors/NotValidError');
 
-const auth = (request, res, next) => {
-  const token = request.cookies.jwt;
+const auth = (req, res, next) => {
+  const cookie = req.cookies.jwt;
 
-  if (!token) {
+  if (!cookie) {
     throw new NotValidError('Требуется авторизация'); // 401
   }
+
+  const token = cookie.replace('jwt', '');
+
   let playload;
 
   try {
-    playload = jwt.verify(token, JWT_SECRET);
+    // playload = jwt.verify(
+    //   token, NODE_ENV === 'production' ? JWT_SECRET : 'pkuvqwongbqpoiqoufnvsvybqp'
+    // );
+    playload = jwt.verify(token, NODE_ENV === 'production' ? 'pkuvqwongbqpoiqoufnvsvybqp' : JWT_SECRET);
   } catch (err) {
     return next(new NotValidError('token is not valid')); // 401
   }
 
-  request.user = playload;
+  req.user = playload;
   return next();
 };
 

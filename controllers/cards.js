@@ -6,8 +6,8 @@ const NoAccessError = require('../errors/NoAccessError');
 // сработает при GET-запросе на URL /cards
 module.exports.getCards = (_req, res, next) => {
   Card.find({})
-    // .populate('owner')
-    .then((cards) => res.send({ cards }))
+    .populate(['owner', 'likes'])
+    .then((cards) => res.send(cards))
     .catch((err) => {
       next(err);
     });
@@ -18,7 +18,8 @@ module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
   Card.create({ name, link, owner })
-    .then((card) => res.send({ card }))
+    .populate(['owner'])
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные id'));
@@ -60,6 +61,7 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
+    .populate(['owner', 'likes'])
     .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
@@ -77,10 +79,9 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
+    .populate(['owner', 'likes'])
     .orFail(new NotFoundError('Карточка не найдена'))
-    .then((card) => {
-      res.send(card);
-    })
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Передан несуществующий ID карточки'));
